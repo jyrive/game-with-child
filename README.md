@@ -8,6 +8,11 @@ hypitään huonekalujen päälle ja napautetaan esineitä. Huoneita on kolme, ja
 jokainen on edellistä vaikeampi. Kun oven koodi on selvitetty, ovesta kävellään
 seuraavaan huoneeseen.
 
+**Kokeile peliä selaimessa:** https://jyrive.github.io/game-with-child/
+
+Toimii tietokoneella ja puhelimella ilman asennusta. Puhelimella pelin voi
+lisätä aloitusnäyttöön, jolloin se toimii myös ilman verkkoa.
+
 ## Miten tämä peli syntyi
 
 Tämä on vanhemman ja lapsen yhteinen projekti, ja lapsi on pelin suunnittelija.
