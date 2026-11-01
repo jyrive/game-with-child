@@ -8,6 +8,20 @@ hypitään huonekalujen päälle ja napautetaan esineitä. Huoneita on kolme, ja
 jokainen on edellistä vaikeampi. Kun oven koodi on selvitetty, ovesta kävellään
 seuraavaan huoneeseen.
 
+## Miten tämä peli syntyi
+
+Tämä on vanhemman ja lapsen yhteinen projekti, ja lapsi on pelin suunnittelija.
+Lapsi päätti, että pelin pitää olla 3D, että huoneessa pitää voida liikkua
+vapaasti kuten Robloxissa ja että tehtävien pitää vaikeutua huone huoneelta.
+Pelin säännöt, pulmat ja tunnelma ovat hänen toiveidensa mukaisia.
+
+Koodi on vibekoodattu: se on kirjoitettu tekoälyn (Claude Code) kanssa
+keskustellen lapsen toiveiden pohjalta. Aikuinen on toiminut tulkkina toiveiden
+ja koodin välillä, ja tekoäly on kirjoittanut ja testannut toteutuksen.
+Projekti on samalla kokeilu siitä, millaista pelinkehitys on, kun lapsi
+suunnittelee ja tekoäly toteuttaa. Seuraava huone on tarkoitus tehdä niin, että
+lapsi kirjoittaa sen itse kansioon `src/game/rooms/`.
+
 ## Käynnistys
 
 ```bash
