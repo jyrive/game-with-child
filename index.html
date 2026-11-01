@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#1b2a33" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Pakohuone" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Pakohuone</title>
+  </head>
+  <body>
+    <canvas id="game" tabindex="0" aria-label="Pelinäkymä"></canvas>
+
+    <div id="ui">
+      <button id="roomLabel" class="label" type="button" title="Aloita alusta"></button>
+      <button id="perfToggle" class="chip" type="button" title="Suorituskykymittari (P)">FPS</button>
+      <div id="perfHud" class="hud" hidden></div>
+      <div id="inventory" class="inventory"></div>
+
+      <div id="message" class="message" hidden></div>
+      <div id="hint" class="hint" hidden></div>
+
+      <div id="joystickZone" class="joyZone touchOnly">
+        <div id="joystickBase" class="joyBase"><div id="joystickKnob" class="joyKnob"></div></div>
+      </div>
+      <button id="jumpBtn" class="jumpBtn touchOnly" type="button" aria-label="Hyppää">⤒</button>
+
+      <div id="codeLock" class="modal" hidden>
+        <div class="panel">
+          <div class="panelTitle">Koodilukko</div>
+          <div id="codeDisplay" class="codeDisplay"></div>
+          <div id="keypad" class="keypad"></div>
+          <button id="codeClose" class="textBtn" type="button">Sulje</button>
+        </div>
+      </div>
+
+      <div id="win" class="modal" hidden>
+        <div class="panel">
+          <div id="winTitle" class="panelTitle">Pääsit ulos!</div>
+          <div id="winTime" class="winTime"></div>
+          <button id="restart" class="textBtn" type="button">Pelaa alusta</button>
+        </div>
+      </div>
+
+      <div id="fade" class="fade"></div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
