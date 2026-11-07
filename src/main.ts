@@ -25,6 +25,14 @@ const canvas = document.getElementById("game") as HTMLCanvasElement;
 // Kosketuksen jälkeen selain lähettäisi vielä hiiren klikkauksen samaan kohtaan. Se osuisi juuri
 // avautuneeseen koodilukkoon. Estetään se, samalla katoaa myös kaksoisnapautuksen zoomaus.
 canvas.addEventListener("touchend", (e) => e.preventDefault(), { passive: false });
+// Selaimen oma zoomaus pois koko sivulta. Viewport-metan user-scalable=no ei riitä: iOS Safari ei
+// noudata sitä, eikä pelkkä touch-action: none ole sielläkään luotettava. Ilman tätä nipistys zoomasi
+// välillä koko sivua kameran sijaan, ja pelialue valui ruudun ulkopuolelle.
+const stopBrowserZoom = (e: Event): void => e.preventDefault();
+for (const type of ["gesturestart", "gesturechange", "gestureend"]) {
+  document.addEventListener(type, stopBrowserZoom, { passive: false });
+}
+document.addEventListener("touchmove", (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 const engine = new Engine(canvas, true, { powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: false });
 
 // Renderöintitarkkuus: enintään 2 kuvapistettä per CSS-pikseli.
