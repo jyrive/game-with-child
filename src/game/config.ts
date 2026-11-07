@@ -23,4 +23,12 @@ export const CONFIG = {
 
   /** Hahmon liike. Hyppykorkeus on jumpSpeed² / (2 · gravity) eli noin 1,1 m. */
   move: { speed: 3.5, jumpSpeed: 5.6, gravity: 14 },
+
+  /**
+   * Pelaajan hahmon 3D-malli kansiossa public/models. Malli on KayKit-paketin Rogue (CC0-lisenssi).
+   * Toisen hahmon saa komennolla: npm run trim-character -- polku/Knight.glb (ks. README).
+   * Kunnes malli on ladattu, tai jos lataus epäonnistuu, näytetään vanha palikkahahmo.
+   * height: mallin pituus metreinä. animSpeed: suurenna, jos jalat liukuvat kävellessä; pienennä, jos ne tepsuttavat.
+   */
+  avatar: { model: "models/rogue.glb", height: 1.7, animSpeed: 1.0 },
 };

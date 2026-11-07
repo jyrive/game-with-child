@@ -44,6 +44,7 @@ lamp.intensity = 0.7;
 lamp.diffuse = new Color3(1, 0.93, 0.8);
 
 const avatar = new Avatar(scene);
+void avatar.loadModel(); // 3D-malli latautuu taustalla; sillä välin näkyy palikkahahmo
 const camera = createFollowCamera(scene, canvas, avatar.cameraTarget);
 applyOrientation(camera);
 

@@ -3,7 +3,7 @@
 Pieni 3D-pakohuonepeli, joka toimii selaimessa tietokoneella ja puhelimella.
 Tehty Babylon.js:llä ja TypeScriptillä.
 
-Huoneessa liikutaan vapaasti palikkahahmolla kuten Robloxissa: kävellään,
+Huoneessa liikutaan vapaasti omalla hahmolla kuten Robloxissa: kävellään,
 hypitään huonekalujen päälle ja napautetaan esineitä. Huoneita on kolme, ja
 jokainen on edellistä vaikeampi. Kun oven koodi on selvitetty, ovesta kävellään
 seuraavaan huoneeseen.
@@ -44,6 +44,7 @@ Muut komennot:
 | `npm run typecheck` | Tarkistaa TypeScript-tyypit                  |
 | `npm run build`     | Tekee julkaistavan version `dist`-kansioon   |
 | `npm run preview`   | Näyttää `dist`-kansion version selaimessa    |
+| `npm run trim-character -- polku/Hahmo.glb` | Tekee hahmomallista pelin käyttämän kevyen version (ks. Pelaajan hahmo) |
 
 ## Ohjaus
 
@@ -99,6 +100,33 @@ Esine on muutama rivi:
   esineen taskusta ja `farMessage` on viesti, kun esine on liian kaukana.
 
 Ovi, karmi ja koodilukko tehdään automaattisesti kohtaan `doorX`.
+
+## Pelaajan hahmo
+
+Pelaajan hahmo on valmis 3D-malli: KayKit-paketin *Adventurers* Rogue, jonka
+on tehnyt Kay Lousberg (CC0-lisenssi, saa käyttää vapaasti). Malli on
+tiedostossa `public/models/rogue.glb`, ja peli lataa sen taustalla. Kunnes
+malli on ladattu, tai jos lataus epäonnistuu, näkyy vanha palikkahahmo.
+
+Paketin alkuperäinen tiedosto on 3,5 Mt, koska siinä on 76 animaatiota ja
+aseita. Komento `npm run trim-character` jättää tiedostoon vain pelin
+käyttämät animaatiot (Idle, Walking_A, Running_A, Jump_Idle, Interact, Cheer)
+ja poistaa aseet. Tulos on noin 0,4 Mt ja 4 300 kolmiota.
+
+Hahmon voi vaihtaa toiseen saman paketin hahmoon (Knight, Barbarian, Mage,
+Rogue_Hooded) näin:
+
+1. Lataa paketti: https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0
+   (mallit ovat kansiossa `Characters/gltf/`) tai https://kaylousberg.itch.io/kaykit-adventurers.
+2. `npm run trim-character -- polku/Knight.glb` tekee tiedoston `public/models/knight.glb`.
+3. Vaihda `model: "models/knight.glb"` tiedostossa `src/game/config.ts`.
+
+Samassa tiedostossa säädetään hahmon pituus (`height`) ja askelten tahti
+(`animSpeed`). Muidenkin tekijöiden malleja voi käyttää, kunhan animaatioilla
+on samat nimet; muuten nimet vaihdetaan tiedoston `src/game/avatar.ts` alkuun.
+
+Mallin PBR-materiaalit vaihdetaan latauksen jälkeen tavallisiin materiaaleihin
+ilman kiiltoa, samoin kuin huoneen esineillä. Se on puhelimelle kevyempää.
 
 ## Suorituskyvyn seuranta
 
@@ -167,7 +195,8 @@ sisältöä:
 - Piirtotarkkuus on enintään kaksi kuvapistettä per CSS-pikseli.
 
 Jos lisäät 3D-malleja, käytä glTF-muotoa ja matalapolygonisia malleja.
-Kenneyn ilmaiset mallit (kenney.nl) sopivat tyyliin hyvin.
+KayKitin (kaylousberg.itch.io) ja Kenneyn (kenney.nl) ilmaiset mallit sopivat
+tyyliin hyvin, ja molemmat ovat CC0-lisensoituja.
 
 ## Julkaisu
 
@@ -194,7 +223,7 @@ src/style.css              Käyttöliittymän ulkoasu
 src/game/config.ts         Yleiset tekstit, ulottuma ja liikkeen säädöt
 src/game/rooms/            Huoneet datana (room1.ts, room2.ts, room3.ts) ja kenttien kuvaus (types.ts)
 src/game/roomBuilder.ts    Rakentaa huoneen meshit kuvauksesta
-src/game/avatar.ts         Palikkahahmo ja kävelyanimaatio
+src/game/avatar.ts         Pelaajan hahmo: 3D-mallin lataus ja animaatiot, varalla palikkahahmo
 src/game/characterController.ts  Liike, painovoima, hyppy ja törmäykset
 src/game/followCamera.ts   Hahmoa seuraava kamera
 src/game/input.ts          Näppäimistö, joystick-arvot ja napautuksen osumatarkistus
@@ -206,6 +235,8 @@ src/perf/perfMonitor.ts    Kehysaikojen mittaus ja tökkäysloki
 src/perf/autoQuality.ts    Automaattinen tarkkuuden säätö
 src/perf/perfHud.ts        Mittarin näyttö
 public/                    Kuvakkeet
+public/models/             Pelaajan hahmon 3D-malli (rogue.glb)
+scripts/trim-character.mjs Karsii hahmomallista turhat animaatiot ja aseet
 ```
 
 ## Ideoita jatkoon
@@ -213,5 +244,6 @@ public/                    Kuvakkeet
 - Neljäs huone, jonka lapsi suunnittelee itse.
 - Esine, jota voi työntää (laatikko oikeaan paikkaan).
 - Äänet: askeleet, napsahdus kun lukko aukeaa, oven narina.
-- Oikeita 3D-malleja glTF-tiedostoina, myös hahmolle.
+- Oikeita 3D-malleja glTF-tiedostoina myös huonekaluille.
+- Hahmon valinta pelin alussa (Knight, Mage, Barbarian...).
 - Pimeä huone ja taskulamppu.

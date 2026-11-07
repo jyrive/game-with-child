@@ -97,6 +97,7 @@ export class Game {
 
     const first = !this.tapped.has(id);
     this.tapped.add(id);
+    if (first && (behavior.swing !== undefined || behavior.reveals || behavior.gives)) this.avatar.playOnce("Interact");
     if (first && behavior.swing !== undefined) this.swing(id, behavior.swing);
     if (first && behavior.reveals) for (const r of behavior.reveals) this.setVisible(r, true);
     if (first && behavior.gives) {
@@ -196,6 +197,7 @@ export class Game {
   private async leaveRoom(): Promise<void> {
     this.busy = true;
     this.controller.enabled = false;
+    this.avatar.playOnce("Cheer");
     const elapsed = this.elapsedBefore + (performance.now() - this.roomStartedAt);
     if (this.roomIndex >= ROOMS.length - 1) {
       this.finished = true;

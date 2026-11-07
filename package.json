@@ -7,13 +7,17 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview --host",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "trim-character": "node scripts/trim-character.mjs"
   },
   "dependencies": {
-    "@babylonjs/core": "^9.33.1"
+    "@babylonjs/core": "^9.33.1",
+    "@babylonjs/loaders": "^9.33.1"
   },
   "devDependencies": {
     "@babylonjs/inspector": "^9.33.1",
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
     "@types/node": "^22.20.5",
     "typescript": "^5.9.0",
     "vite": "^8.3.5",
