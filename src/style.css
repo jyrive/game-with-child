@@ -13,8 +13,6 @@ html, body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   overflow: hidden;
   overscroll-behavior: none;
-  /* Koko sivu on peliä: selaimen nipistys- ja kaksoisnapautuszoomaus pois joka kohdasta, myös valikoista. */
-  touch-action: none;
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
