@@ -13,6 +13,8 @@ export const room3: RoomDefinition = {
   intro: "Tässä huoneessa pitää ensin löytää avain.",
   size: { width: 8, depth: 8, height: 3.5 },
   colors: { wall: "#d6c3b0", floor: "#4f4a45", ceiling: "#efe9e2" },
+  floorStyle: "planks",
+  wallStyle: "stripes",
   start: [1, -0.5],
   doorX: 1,
   objects: [

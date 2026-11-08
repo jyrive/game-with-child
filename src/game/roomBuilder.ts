@@ -10,6 +10,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import type { ObjectDef, RoomDefinition } from "./rooms/types";
 import { FURNITURE } from "./rooms/furniture";
+import { buildSurfaces } from "./roomSurfaces";
 import type { FurnitureLibrary, MovingPart } from "./furnitureLibrary";
 
 export const DOOR_ID = "door";
@@ -90,6 +91,9 @@ export function buildRoom(scene: Scene, def: RoomDefinition, furniture: Furnitur
   shell.isPickable = false;
   shell.checkCollisions = true;
   shell.freezeWorldMatrix();
+  // Kuori jää näkymättömäksi törmäyslaatikoksi; näkyvät pinnat kuvioineen tulevat roomSurfacesista.
+  shell.isVisible = false;
+  frozen.push(...buildSurfaces(scene, def, root));
 
   // Kattolamppu keskellä.
   const bulb = CreateSphere("bulb", { diameter: 0.3, segments: 8 }, scene);
