@@ -21,6 +21,13 @@ export const CONFIG = {
   /** Kuinka kaukaa esineisiin ylettyy: vaakasuunnassa metreinä, ja kuinka korkealle tai alas jalkojen tasosta. */
   reach: { horizontal: 1.6, up: 2.2, down: 0.9 },
 
+  /**
+   * Kamera. autoFollow: kamera kääntyy hiljalleen hahmon taakse, kun hahmo kävelee eteenpäin.
+   * Laita false, jos haluat kääntää kameraa aina itse. speed: kuinka nopeasti kamera kääntyy.
+   * delayMs: kuinka kauan (millisekunteina) kamera odottaa, kun pelaaja on kääntänyt sitä itse.
+   */
+  camera: { autoFollow: true, speed: 1.5, delayMs: 1500 },
+
   /** Hahmon liike. Hyppykorkeus on jumpSpeed² / (2 · gravity) eli noin 1,1 m. */
   move: { speed: 3.5, jumpSpeed: 5.6, gravity: 14 },
 
