@@ -10,14 +10,20 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import type { ObjectDef, RoomDefinition } from "./rooms/types";
 import { FURNITURE } from "./rooms/furniture";
-import type { FurnitureLibrary } from "./furnitureLibrary";
+import type { FurnitureLibrary, MovingPart } from "./furnitureLibrary";
 
 export const DOOR_ID = "door";
 export const KEYPAD_ID = "keypad";
 
+/**
+ * Esine tai sen osa, joka kääntyy saranan ympäri (taulu, kaapin ovi, arkun kansi).
+ * Kääntö on node.rotation[axis] = base + sign · kulma.
+ */
 export interface Swingable {
   node: TransformNode;
-  baseYaw: number;
+  axis: "x" | "y";
+  base: number;
+  sign: number;
 }
 
 export interface BuiltRoom {
@@ -25,7 +31,7 @@ export interface BuiltRoom {
   root: TransformNode;
   /** Esineen id → sen meshit (pöydällä on monta osaa). */
   meshes: Map<string, Mesh[]>;
-  /** Esineet, jotka voivat kääntyä saranan ympäri. */
+  /** Esineet ja osat, jotka voivat kääntyä saranan ympäri. */
   swingables: Map<string, Swingable>;
   door: { meshes: Mesh[]; led: StandardMaterial };
   dispose(): void;
@@ -122,7 +128,7 @@ export function buildRoom(scene: Scene, def: RoomDefinition, furniture: Furnitur
     m.metadata = { id: DOOR_ID };
   }
   door.checkCollisions = true;
-  swingables.set(DOOR_ID, { node: doorPivot, baseYaw: 0 });
+  swingables.set(DOOR_ID, { node: doorPivot, axis: "y", base: 0, sign: 1 });
 
   const keypad = CreateBox("keypad", { width: 0.28, height: 0.38, depth: 0.05 }, scene);
   keypad.position.set(doorX + 0.9, 1.4, D / 2 - 0.025);
@@ -143,9 +149,11 @@ export function buildRoom(scene: Scene, def: RoomDefinition, furniture: Furnitur
 
   // --- Huoneen omat esineet -------------------------------------------------------------------
   for (const o of def.objects) {
-    const parts = createShape(scene, o, material, furniture);
+    const { parts, moving } = createShape(scene, o, material, furniture);
     const [x, y, z] = o.at;
-    const swing = o.onTap?.swing;
+    // Jos mallissa on oma liikkuva osa (arkun kansi, jääkaapin ovi), swing kääntää vain sitä.
+    const swing = moving ? undefined : o.onTap?.swing;
+    if (moving && o.onTap?.swing !== undefined) swingables.set(o.id, { node: moving.mesh, axis: moving.axis, base: 0, sign: moving.sign });
 
     // Huonekalumallin törmäys tehdään näkymättömällä laatikolla. Se on kevyempi kuin mallin
     // omat kolmiot, ja pöydän tai sohvan päälle voi hypätä kuten laatikon päälle.
@@ -173,7 +181,7 @@ export function buildRoom(scene: Scene, def: RoomDefinition, furniture: Furnitur
         p.parent = pivot;
         p.position.x += halfWidth;
       }
-      swingables.set(o.id, { node: pivot, baseYaw: yaw });
+      swingables.set(o.id, { node: pivot, axis: "y", base: yaw, sign: 1 });
     } else {
       const holder = new TransformNode(`obj:${o.id}`, scene);
       holder.parent = root;
@@ -185,6 +193,7 @@ export function buildRoom(scene: Scene, def: RoomDefinition, furniture: Furnitur
       if (p !== collider) register(o.id, p, o, !modelSize);
       if (swing === undefined) p.freezeWorldMatrix();
     }
+    if (moving) register(o.id, moving.mesh, o, false); // liikkuvaa osaa ei jäädytetä
   }
 
   for (const m of frozen) m.freeze();
@@ -197,7 +206,7 @@ export function buildRoom(scene: Scene, def: RoomDefinition, furniture: Furnitur
     door: { meshes: [door, knob], led: ledMat },
     dispose: () => {
       // Huonekalujen yhteinen materiaali ja tekstuuri jäävät seuraavaa huonetta varten.
-      for (const m of root.getChildMeshes()) if (furniture && m.material === furniture.material) m.material = null;
+      for (const m of root.getChildMeshes()) if (m.material && furniture?.materials.has(m.material)) m.material = null;
       root.dispose(false, true);
     },
   };
@@ -206,7 +215,18 @@ export function buildRoom(scene: Scene, def: RoomDefinition, furniture: Furnitur
 type MaterialFn = (color: string, glow?: string) => StandardMaterial;
 
 /** Luo esineen osat paikallisessa koordinaatistossa (keskipiste origossa, pöydällä ja tuolilla lattia origossa). */
-function createShape(scene: Scene, o: ObjectDef, material: MaterialFn, furniture: FurnitureLibrary | null): Mesh[] {
+/** Esineen osat. moving: mallin oma liikkuva osa (on jonkin osan lapsi, ei parts-listassa). */
+interface Shape {
+  parts: Mesh[];
+  moving?: MovingPart | null;
+}
+
+function createShape(scene: Scene, o: ObjectDef, material: MaterialFn, furniture: FurnitureLibrary | null): Shape {
+  const parts = createParts(scene, o, material, furniture);
+  return Array.isArray(parts) ? { parts } : parts;
+}
+
+function createParts(scene: Scene, o: ObjectDef, material: MaterialFn, furniture: FurnitureLibrary | null): Mesh[] | Shape {
   const color = o.color ?? "#999999";
   const s = o.size ?? [];
   switch (o.shape) {
@@ -216,7 +236,7 @@ function createShape(scene: Scene, o: ObjectDef, material: MaterialFn, furniture
         return [];
       }
       const m = furniture?.create(o.model, o.id);
-      if (m) return [m];
+      if (m) return { parts: [m.mesh], moving: m.part };
       const [w, h, d] = FURNITURE[o.model].size;
       const box = CreateBox(o.id, { width: w, height: h, depth: d }, scene);
       box.position.y = h / 2;

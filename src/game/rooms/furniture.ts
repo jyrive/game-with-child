@@ -2,7 +2,9 @@
 //
 // Huonekalut, joita huoneeseen voi laittaa: { shape: "model", model: "couch", ... }
 // Koko on [leveys, korkeus, syvyys] metreinä, kun rotate = 0. Etupuoli osoittaa silloin etelään (-z).
-// Mallit: KayKit Furniture Bits, Kay Lousberg (CC0-lisenssi).
+// Arkun kansi ja jääkaapin ovi aukeavat, kun esineellä on onTap.swing (esim. swing: 100).
+// Mallit: KayKit Furniture Bits, Dungeon Remastered ja Restaurant Bits, Kay Lousberg (CC0-lisenssi).
+// Vaatekaappi on tehty itse samoilla väreillä.
 
 export const FURNITURE = {
   armchair: { label: "Nojatuoli", size: [1.4, 0.95, 1.24] },
@@ -28,8 +30,11 @@ export const FURNITURE = {
   chair_C: { label: "Tuoli C", size: [0.58, 0.94, 0.73] },
   chair_stool: { label: "Jakkara", size: [0.58, 0.39, 0.58] },
   chair_stool_wood: { label: "Jakkara, puu", size: [0.58, 0.39, 0.58] },
+  chest: { label: "Arkku (kansi aukeaa)", size: [0.99, 0.76, 0.84] },
   couch: { label: "Sohva", size: [2.33, 0.95, 1.24] },
   couch_pillows: { label: "Sohva tyynyillä", size: [2.33, 0.95, 1.24] },
+  fridge: { label: "Jääkaappi (ovi aukeaa)", size: [0.93, 1.17, 1.04] },
+  key: { label: "Avain", size: [0.38, 0.17, 0.06] },
   lamp_standing: { label: "Jalkalamppu", size: [0.78, 1.96, 0.78] },
   lamp_table: { label: "Pöytälamppu", size: [0.78, 0.79, 0.78] },
   pictureframe_large_A: { label: "Iso taulu A", size: [0.79, 0.93, 0.16] },
@@ -58,6 +63,7 @@ export const FURNITURE = {
   table_medium: { label: "Pöytä", size: [1.55, 0.78, 1.55] },
   table_medium_long: { label: "Pitkä pöytä", size: [2.33, 0.78, 1.55] },
   table_small: { label: "Pieni pöytä", size: [0.78, 0.78, 0.78] },
+  wardrobe: { label: "Vaatekaappi", size: [1.28, 2.32, 0.68] },
 } as const satisfies Record<string, { label: string; size: readonly [number, number, number] }>;
 
 export type FurnitureName = keyof typeof FURNITURE;

@@ -4,7 +4,7 @@
 export const CONFIG = {
   texts: {
     controlsTouch: "Liiku vasemmalla peukalolla. Käännä kameraa vetämällä oikealta. Hyppää nurkan napista. Napauta esineitä.",
-    controlsKeyboard: "Liiku WASD- tai nuolinäppäimillä. Käännä kameraa hiirellä vetämällä. Hyppää välilyönnillä. Klikkaa esineitä.",
+    controlsKeyboard: "Liiku WASD- tai nuolinäppäimillä. Käännä kameraa hiirellä vetämällä. Hyppää välilyönnillä. Klikkaa esineitä. V vaihtaa näkymää.",
     tooFar: "Mene lähemmäs.",
     doorLocked: "Ovi on lukossa. Vieressä on koodilukko.",
     doorOpening: "Ovi aukeaa! Kävele läpi.",

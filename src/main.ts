@@ -9,7 +9,7 @@ import { registerSW } from "virtual:pwa-register";
 import { CONFIG } from "./game/config";
 import { Avatar } from "./game/avatar";
 import { CharacterController } from "./game/characterController";
-import { applyOrientation, createFollowCamera, lookFrom, updateFollowCamera } from "./game/followCamera";
+import { applyOrientation, createFollowCamera, getCameraMode, lookFrom, setCameraMode, updateFollowCamera, type CameraMode } from "./game/followCamera";
 import { MoveInput, pickInteractable, setupCanvasTap } from "./game/input";
 import { Game } from "./game/game";
 import { FurnitureLibrary } from "./game/furnitureLibrary";
@@ -57,6 +57,26 @@ void avatar.loadModel(); // 3D-malli latautuu taustalla; sillä välin näkyy pa
 const camera = createFollowCamera(scene, canvas, avatar.cameraTarget);
 applyOrientation(camera);
 
+// Näkymän vaihto: takaa tai hahmon silmistä. Valinta muistetaan selaimessa.
+const VIEW_KEY = "pakohuone.view";
+const viewBtn = document.getElementById("viewBtn") as HTMLButtonElement;
+const showView = (mode: CameraMode): void => {
+  setCameraMode(camera, mode);
+  viewBtn.textContent = mode === "eyes" ? "Takaa" : "Silmistä"; // napissa lukee, mihin pääsee
+  try {
+    localStorage.setItem(VIEW_KEY, mode);
+  } catch {
+    /* ei tallennusta, ei haittaa */
+  }
+};
+const toggleView = (): void => showView(getCameraMode(camera) === "eyes" ? "behind" : "eyes");
+viewBtn.addEventListener("click", toggleView);
+try {
+  if (localStorage.getItem(VIEW_KEY) === "eyes") showView("eyes");
+} catch {
+  /* ei haittaa */
+}
+
 const input = new MoveInput();
 const controller = new CharacterController(avatar, camera, input);
 const overlay = new Overlay({ onRestart: () => game.restart() });
@@ -102,6 +122,7 @@ async function toggleInspector(): Promise<void> {
 window.addEventListener("keydown", (e) => {
   if (overlay.handleKey(e)) return;
   if (e.key === "p" || e.key === "P") hud.toggle();
+  else if (e.key === "v" || e.key === "V") toggleView();
   else if (e.key === "i" || e.key === "I") void toggleInspector();
 });
 

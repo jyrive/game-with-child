@@ -16,17 +16,17 @@ export const room3: RoomDefinition = {
   start: [1, -0.5],
   doorX: 1,
   objects: [
-    // Arkku lounaisnurkassa. Luukku on lukossa ilman avainta.
-    { id: "chestBody", shape: "box", at: [-3.5, 0.25, -3.0], size: [0.9, 0.5, 0.45], color: "#6b4423", solid: true, onTap: { message: "Vanha arkku. Edessä on luukku." } },
+    // Arkku lounaisnurkassa. Kansi on lukossa ilman avainta; lappu on arkussa kannen alla.
     {
-      id: "chestHatch",
-      shape: "box",
-      at: [-3.5, 0.25, -2.73],
-      size: [0.8, 0.4, 0.04],
-      color: "#8a5a33",
+      id: "chest",
+      shape: "model",
+      model: "chest",
+      at: [-3.3, 0, -3.4],
+      rotate: 180,
+      solid: true,
       onTap: {
         requires: "avain",
-        lockedMessage: "Arkku on lukossa. Tarvitset avaimen.",
+        lockedMessage: "Vanha arkku. Se on lukossa. Tarvitset avaimen.",
         swing: 100,
         message: "Arkku aukesi! Sisällä on lappu.",
         messageAgain: "Arkku on auki.",
@@ -36,8 +36,10 @@ export const room3: RoomDefinition = {
     {
       id: "chestNote",
       shape: "sign",
-      at: [-3.5, 0.28, -2.755],
-      size: [0.5, 0.3],
+      at: [-3.3, 0.37, -3.4],
+      size: [0.66, 0.42],
+      rotate: 180,
+      tilt: 90,
       hidden: true,
       text: "KOODI =|tuolit · kirjat · ikkunat",
       color: "#f6ecc9",
@@ -46,15 +48,14 @@ export const room3: RoomDefinition = {
     },
 
     // Vaatekaappi itäseinällä, avain sen päällä.
-    { id: "wardrobe", shape: "box", at: [3.4, 1.15, 2.5], size: [1.2, 2.3, 0.6], color: "#4e3524", solid: true, onTap: { message: "Korkea vaatekaappi. Päällä kiiltää jotain." } },
+    { id: "wardrobe", shape: "model", model: "wardrobe", at: [3.64, 0, 2.5], rotate: 90, solid: true, onTap: { message: "Korkea vaatekaappi. Päällä kiiltää jotain." } },
     {
       id: "key",
-      shape: "box",
-      at: [3.4, 2.34, 2.5],
-      size: [0.12, 0.05, 0.28],
-      color: "#e0b23a",
-      glow: "#5a4210",
+      shape: "model",
+      model: "key",
+      at: [3.6, 2.32, 2.5],
       rotate: 30,
+      tilt: 90,
       onTap: { gives: "avain", message: "Sait avaimen!", farMessage: "Kaapin päällä kiiltää jotain. Liian korkealla." },
     },
     { id: "table", shape: "model", model: "table_small", at: [2.2, 0, 2.5], solid: true, onTap: { message: "Pöytä. Sen päälle voisi kiivetä." } },
@@ -65,7 +66,7 @@ export const room3: RoomDefinition = {
     { id: "book1", shape: "model", model: "book_single", at: [2.0, 0.78, 2.3], rotate: 10, onTap: { message: "Kirja." } },
     { id: "book2", shape: "model", model: "book_single", at: [2.4, 0.78, 2.7], rotate: -20, onTap: { message: "Kirja." } },
     { id: "book3", shape: "model", model: "book_single", at: [-3.4, 0.78, 1.1], rotate: -70, onTap: { message: "Kirja yöpöydällä." } },
-    { id: "book4", shape: "model", model: "book_single", at: [-3.5, 0.5, -3.0], rotate: -10, onTap: { message: "Kirja arkun päällä." } },
+    { id: "book4", shape: "model", model: "book_single", at: [-2.2, 0, -3.7], rotate: -10, onTap: { message: "Kirja lattialla arkun vieressä." } },
     {
       id: "window",
       shape: "sign",
