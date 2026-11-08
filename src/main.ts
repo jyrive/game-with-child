@@ -12,6 +12,7 @@ import { CharacterController } from "./game/characterController";
 import { applyOrientation, createFollowCamera, lookFrom } from "./game/followCamera";
 import { MoveInput, pickInteractable, setupCanvasTap } from "./game/input";
 import { Game } from "./game/game";
+import { FurnitureLibrary } from "./game/furnitureLibrary";
 import { Overlay } from "./ui/overlay";
 import { isTouchDevice, setupTouchControls } from "./ui/joystick";
 import { PerfMonitor } from "./perf/perfMonitor";
@@ -59,7 +60,7 @@ applyOrientation(camera);
 const input = new MoveInput();
 const controller = new CharacterController(avatar, camera, input);
 const overlay = new Overlay({ onRestart: () => game.restart() });
-const game = new Game(scene, overlay, avatar, controller, camera);
+const game = new Game(scene, overlay, avatar, controller, camera, FurnitureLibrary.load(scene));
 
 const handleTap = (clientX: number, clientY: number): void => {
   if (overlay.modalOpen) return;
@@ -75,7 +76,7 @@ scene.onBeforeRenderObservable.add(() => {
   game.update();
 });
 
-game.start();
+void game.start(); // huone tulee näkyviin, kun huonekalumallit on ladattu
 overlay.showHint(isTouchDevice() ? CONFIG.texts.controlsTouch : CONFIG.texts.controlsKeyboard, 12000);
 
 // --- Suorituskyvyn seuranta ---------------------------------------------------------------

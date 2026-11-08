@@ -45,6 +45,7 @@ Muut komennot:
 | `npm run build`     | Tekee julkaistavan version `dist`-kansioon   |
 | `npm run preview`   | Näyttää `dist`-kansion version selaimessa    |
 | `npm run trim-character -- polku/Hahmo.glb` | Tekee hahmomallista pelin käyttämän kevyen version (ks. Pelaajan hahmo) |
+| `npm run pack-furniture -- polku/gltf-kansio` | Pakkaa huonekalumallit yhdeksi tiedostoksi (ks. Huonekalut) |
 
 ## Ohjaus
 
@@ -65,8 +66,8 @@ selaimeen, joten peliä voi jatkaa huoneesta, johon jäi.
 ## Huoneet
 
 1. **Alku.** Koodi on lapussa taulun takana.
-2. **Kolme numeroa.** Koodi on kolmessa värillisessä lapussa: yksi ruukun alla,
-   yksi korkealla hyllyllä (laatikon päältä yltää) ja yksi kaapissa. Juliste
+2. **Kolme numeroa.** Koodi on kolmessa värillisessä lapussa: yksi kaktusruukun
+   alla, yksi korkealla hyllyllä (pienen kaapin päältä yltää) ja yksi kaapissa. Juliste
    kertoo järjestyksen.
 3. **Avain ja lasku.** Avain on vaatekaapin päällä, jonne pääsee pöydän kautta.
    Avaimella arkku aukeaa, ja arkun lappu kertoo, että koodi on tuolien,
@@ -89,7 +90,7 @@ Esine on muutama rivi:
 ```
 
 - `shape`: `box`, `sphere`, `cylinder`, `sign` (kyltti, johon voi kirjoittaa),
-  `table` tai `chair`.
+  `table`, `chair` tai `model` (valmis huonekalu, ks. alla).
 - `at`: paikka metreinä. Huoneen keskipiste on `[0, 0, 0]` lattian tasolla.
   x on vasen/oikea, y korkeus, z etelä/pohjoinen. Ovi on aina pohjoisseinällä.
 - `solid: true` tarkoittaa, että hahmo törmää esineeseen ja voi seistä sen päällä.
@@ -100,6 +101,21 @@ Esine on muutama rivi:
   esineen taskusta ja `farMessage` on viesti, kun esine on liian kaukana.
 
 Ovi, karmi ja koodilukko tehdään automaattisesti kohtaan `doorX`.
+
+Valmis huonekalu tehdään näin:
+
+```ts
+{ id: "sohva", shape: "model", model: "couch_pillows", at: [0, 0, -3.35], rotate: 180, solid: true,
+  onTap: { message: "Pehmeä sohva." } },
+```
+
+- `model` on huonekalun nimi. Kaikki nimet, suomenkieliset selitykset ja koot ovat
+  tiedostossa `src/game/rooms/furniture.ts`. Editori ehdottaa nimiä, kun alkaa kirjoittaa.
+- Huonekalulle ei anneta `size`-kokoa, koska malli on valmiiksi oikean kokoinen.
+- `at` on huonekalun alareunan keskikohta. Lattialla y on 0, ja pöydän päällä
+  y on pöydän korkeus (esimerkiksi `table_medium` on 0,78 m korkea).
+- `rotate`: etupuoli osoittaa huoneeseen päin, kun huonekalu on eteläseinällä 180,
+  pohjoisseinällä 0, itäseinällä 90 ja länsiseinällä -90.
 
 ## Pelaajan hahmo
 
@@ -127,6 +143,25 @@ on samat nimet; muuten nimet vaihdetaan tiedoston `src/game/avatar.ts` alkuun.
 
 Mallin PBR-materiaalit vaihdetaan latauksen jälkeen tavallisiin materiaaleihin
 ilman kiiltoa, samoin kuin huoneen esineillä. Se on puhelimelle kevyempää.
+
+## Huonekalut
+
+Huonekalut ovat KayKit-paketin *Furniture Bits* malleja. Ne on tehnyt Kay
+Lousberg, sama tekijä kuin pelaajan hahmon (CC0-lisenssi, saa käyttää vapaasti).
+Kaikki 53 mallia ovat yhdessä tiedostossa `public/models/furniture.glb` (noin
+0,65 Mt). Malleilla on yksi yhteinen kuva ja materiaali, joten huonekaluja voi olla
+huoneessa paljon ilman, että peli hidastuu.
+
+Tiedosto tehdään paketista näin:
+
+1. Lataa paketti: https://github.com/KayKit-Game-Assets/KayKit-Furniture-Bits-1.0
+   (mallit ovat kansiossa `addons/kaykit_furniture_bits/Assets/gltf`).
+2. `npm run pack-furniture -- polku/gltf` tekee tiedostot `public/models/furniture.glb`
+   ja `src/game/rooms/furniture.ts`.
+
+Komento skaalaa mallit samaan kokoon kuin hahmo (hahmo 1,7 m, pöytä 0,78 m).
+Jos huonekalumallien lataus epäonnistuu, huonekalut näkyvät saman kokoisina
+laatikoina, ja pulmat toimivat silti.
 
 ## Suorituskyvyn seuranta
 

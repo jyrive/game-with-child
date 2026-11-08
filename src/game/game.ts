@@ -8,6 +8,7 @@ import type { RoomDefinition, TapBehavior } from "./rooms/types";
 import { buildRoom, DOOR_ID, KEYPAD_ID, type BuiltRoom } from "./roomBuilder";
 import { tween } from "./tween";
 import type { Avatar } from "./avatar";
+import type { FurnitureLibrary } from "./furnitureLibrary";
 import type { CharacterController } from "./characterController";
 import { resetCamera } from "./followCamera";
 import type { Overlay } from "../ui/overlay";
@@ -32,6 +33,7 @@ export class Game {
   private finished = false;
   private roomStartedAt = performance.now();
   private elapsedBefore = 0;
+  private furniture: FurnitureLibrary | null = null;
 
   constructor(
     private readonly scene: Scene,
@@ -39,6 +41,8 @@ export class Game {
     private readonly avatar: Avatar,
     private readonly controller: CharacterController,
     private readonly camera: ArcRotateCamera,
+    /** Huonekalumallit. Ensimmäinen huone rakennetaan vasta, kun ne on ladattu (tai lataus epäonnistui). */
+    private readonly furnitureLoading: Promise<FurnitureLibrary | null>,
   ) {}
 
   get roomName(): string {
@@ -50,7 +54,8 @@ export class Game {
   }
 
   /** Jatkaa tallennetusta huoneesta tai aloittaa alusta. */
-  start(): void {
+  async start(): Promise<void> {
+    this.furniture = await this.furnitureLoading;
     const saved = this.loadProgress();
     this.elapsedBefore = saved?.elapsedBefore ?? 0;
     this.loadRoom(Math.min(saved?.room ?? 0, ROOMS.length - 1));
@@ -178,7 +183,7 @@ export class Game {
     const def = ROOMS[index];
     if (!def) return;
     this.roomIndex = index;
-    this.built = buildRoom(this.scene, def);
+    this.built = buildRoom(this.scene, def, this.furniture);
     this.inventory.clear();
     this.tapped.clear();
     this.unlocked = false;
