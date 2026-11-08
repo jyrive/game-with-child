@@ -6,7 +6,9 @@
  * Huoneen keskipiste on (0, 0, 0) lattian tasolla. Ovi on aina pohjoisseinällä.
  */
 
-export type Shape = "box" | "sphere" | "cylinder" | "sign" | "table" | "chair";
+import type { FurnitureName } from "./furniture";
+
+export type Shape = "box" | "sphere" | "cylinder" | "sign" | "table" | "chair" | "model";
 
 export interface ObjectDef {
   /** Yksilöllinen nimi huoneen sisällä. Tähän viitataan esim. reveals-kentässä. */
@@ -14,19 +16,29 @@ export interface ObjectDef {
   shape: Shape;
   /**
    * Paikka. Laatikolla, pallolla, sylinterillä ja kyltillä keskipiste.
-   * Pöydällä ja tuolilla lattian taso (y = 0).
+   * Pöydällä, tuolilla ja huonekalumallilla alareunan keskikohta: lattialla y = 0,
+   * pöydän päällä y = pöydän korkeus.
    */
   at: [number, number, number];
   /**
    * Koko muodon mukaan:
    * box [leveys, korkeus, syvyys] · sphere [halkaisija] · cylinder [halkaisija, korkeus]
    * sign [leveys, korkeus] · table [leveys, korkeus, syvyys] · chair [leveys]
+   * Huonekalumallilla kokoa ei anneta: se on valmiiksi oikea (ks. furniture.ts).
    */
-  size: number[];
+  size?: number[];
+  /**
+   * Huonekalumallin nimi, kun shape on "model". Kaikki nimet ja koot ovat tiedostossa furniture.ts.
+   * Esimerkiksi: { id: "sohva", shape: "model", model: "couch", at: [0, 0, -3.3], rotate: 180 }
+   */
+  model?: FurnitureName;
   color?: string;
   /** Hohtava väri (lamppu, merkkivalo, ikkuna). */
   glow?: string;
-  /** Kiertokulma asteina ylhäältä katsottuna. Kyltin etupuoli osoittaa etelään (-z), kun rotate = 0. */
+  /**
+   * Kiertokulma asteina ylhäältä katsottuna. Kyltin ja huonekalun etupuoli osoittaa etelään (-z),
+   * kun rotate = 0. Seinää vasten: eteläseinä 180, pohjoisseinä 0, itäseinä 90, länsiseinä -90.
+   */
   rotate?: number;
   /** Kallistus asteina. 90 = kyltti makaa lattialla teksti ylöspäin. */
   tilt?: number;
@@ -35,7 +47,7 @@ export interface ObjectDef {
   textColor?: string;
   /** Valmis kuva kyltin tai laatikon pintaan. */
   texture?: "painting";
-  /** Hahmo törmää tähän eikä kävele läpi. Pöydät, laatikot, kaapit. */
+  /** Hahmo törmää tähän eikä kävele läpi, ja sen päälle voi hypätä. Pöydät, laatikot, kaapit. */
   solid?: boolean;
   /** Näkymätön, kunnes jokin toinen esine paljastaa sen (reveals). */
   hidden?: boolean;

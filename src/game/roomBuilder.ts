@@ -9,6 +9,8 @@ import { CreateSphere } from "@babylonjs/core/Meshes/Builders/sphereBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import type { ObjectDef, RoomDefinition } from "./rooms/types";
+import { FURNITURE } from "./rooms/furniture";
+import type { FurnitureLibrary } from "./furnitureLibrary";
 
 export const DOOR_ID = "door";
 export const KEYPAD_ID = "keypad";
@@ -31,8 +33,11 @@ export interface BuiltRoom {
 
 const rad = (deg: number | undefined): number => ((deg ?? 0) * Math.PI) / 180;
 
-/** Rakentaa huoneen meshit kuvauksen perusteella. */
-export function buildRoom(scene: Scene, def: RoomDefinition): BuiltRoom {
+/**
+ * Rakentaa huoneen meshit kuvauksen perusteella. Huonekalumallit tulevat kirjastosta;
+ * ilman sitä (lataus epäonnistui) ne näytetään saman kokoisina laatikoina.
+ */
+export function buildRoom(scene: Scene, def: RoomDefinition, furniture: FurnitureLibrary | null): BuiltRoom {
   const { width: W, depth: D, height: H } = def.size;
   const root = new TransformNode(`room:${def.id}`, scene);
   const meshes = new Map<string, Mesh[]>();
@@ -54,13 +59,13 @@ export function buildRoom(scene: Scene, def: RoomDefinition): BuiltRoom {
     return m;
   };
 
-  const register = (id: string, mesh: Mesh, o?: ObjectDef): void => {
+  const register = (id: string, mesh: Mesh, o?: ObjectDef, collide = true): void => {
     const list = meshes.get(id) ?? [];
     list.push(mesh);
     meshes.set(id, list);
     mesh.isPickable = !!o?.onTap && !o.hidden;
     mesh.metadata = o?.onTap ? { id } : null;
-    mesh.checkCollisions = !!o?.solid;
+    mesh.checkCollisions = collide && !!o?.solid;
     if (o?.hidden) mesh.isVisible = false;
   };
 
@@ -138,13 +143,27 @@ export function buildRoom(scene: Scene, def: RoomDefinition): BuiltRoom {
 
   // --- Huoneen omat esineet -------------------------------------------------------------------
   for (const o of def.objects) {
-    const parts = createShape(scene, o, material);
+    const parts = createShape(scene, o, material, furniture);
     const [x, y, z] = o.at;
     const swing = o.onTap?.swing;
 
+    // Huonekalumallin törmäys tehdään näkymättömällä laatikolla. Se on kevyempi kuin mallin
+    // omat kolmiot, ja pöydän tai sohvan päälle voi hypätä kuten laatikon päälle.
+    const modelSize = o.shape === "model" && o.model ? FURNITURE[o.model]?.size : undefined;
+    let collider: Mesh | null = null;
+    if (modelSize && o.solid) {
+      const [w, h, d] = modelSize;
+      collider = CreateBox(`${o.id}:collider`, { width: w, height: h, depth: d }, scene);
+      collider.position.y = h / 2;
+      collider.isVisible = false;
+      collider.isPickable = false;
+      collider.checkCollisions = true;
+      parts.push(collider);
+    }
+
     if (swing !== undefined) {
       // Sarana esineen vasemmassa reunassa: esine on saranan lapsi ja siirretty puolen leveyden verran oikealle.
-      const halfWidth = (o.size[0] ?? 0) / 2;
+      const halfWidth = (modelSize?.[0] ?? o.size?.[0] ?? 0) / 2;
       const pivot = new TransformNode(`pivot:${o.id}`, scene);
       pivot.parent = root;
       const yaw = rad(o.rotate);
@@ -163,7 +182,7 @@ export function buildRoom(scene: Scene, def: RoomDefinition): BuiltRoom {
       for (const p of parts) p.parent = holder;
     }
     for (const p of parts) {
-      register(o.id, p, o);
+      if (p !== collider) register(o.id, p, o, !modelSize);
       if (swing === undefined) p.freezeWorldMatrix();
     }
   }
@@ -176,17 +195,34 @@ export function buildRoom(scene: Scene, def: RoomDefinition): BuiltRoom {
     meshes,
     swingables,
     door: { meshes: [door, knob], led: ledMat },
-    dispose: () => root.dispose(false, true),
+    dispose: () => {
+      // Huonekalujen yhteinen materiaali ja tekstuuri jäävät seuraavaa huonetta varten.
+      for (const m of root.getChildMeshes()) if (furniture && m.material === furniture.material) m.material = null;
+      root.dispose(false, true);
+    },
   };
 }
 
 type MaterialFn = (color: string, glow?: string) => StandardMaterial;
 
 /** Luo esineen osat paikallisessa koordinaatistossa (keskipiste origossa, pöydällä ja tuolilla lattia origossa). */
-function createShape(scene: Scene, o: ObjectDef, material: MaterialFn): Mesh[] {
+function createShape(scene: Scene, o: ObjectDef, material: MaterialFn, furniture: FurnitureLibrary | null): Mesh[] {
   const color = o.color ?? "#999999";
-  const s = o.size;
+  const s = o.size ?? [];
   switch (o.shape) {
+    case "model": {
+      if (!o.model || !(o.model in FURNITURE)) {
+        console.warn(`Esineellä ${o.id} ei ole huonekalua model-kentässä (ks. rooms/furniture.ts).`);
+        return [];
+      }
+      const m = furniture?.create(o.model, o.id);
+      if (m) return [m];
+      const [w, h, d] = FURNITURE[o.model].size;
+      const box = CreateBox(o.id, { width: w, height: h, depth: d }, scene);
+      box.position.y = h / 2;
+      box.material = material(color);
+      return [box];
+    }
     case "box": {
       const m = CreateBox(o.id, { width: s[0] ?? 1, height: s[1] ?? 1, depth: s[2] ?? 1 }, scene);
       m.material = o.texture === "painting" ? textureMaterial(scene, `${o.id}:tex`, paintingTexture(scene, o.id)) : material(color, o.glow);

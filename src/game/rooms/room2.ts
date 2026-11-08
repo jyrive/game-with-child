@@ -1,8 +1,8 @@
 import type { RoomDefinition } from "./types";
 
 /**
- * Huone 2: koodi on kolmessa osassa. Punainen lappu on ruukun alla,
- * sininen korkealla hyllyllä (pitää kiivetä laatikon päälle) ja vihreä kaapissa.
+ * Huone 2: koodi on kolmessa osassa. Punainen lappu on kaktusruukun alla,
+ * sininen korkealla hyllyllä (pitää kiivetä pienen kaapin päälle) ja vihreä kaapissa.
  * Juliste kertoo järjestyksen.
  */
 export const room2: RoomDefinition = {
@@ -27,21 +27,20 @@ export const room2: RoomDefinition = {
       onTap: { message: "Julisteessa lukee: punainen, sininen, vihreä. Siinä järjestyksessä." },
     },
 
-    // Punainen lappu: ruukun alla pöydällä.
-    { id: "table", shape: "table", at: [3.4, 0, 1.5], size: [0.8, 0.75, 1.6], color: "#6f4a2c", solid: true, onTap: { message: "Pöytä. Ruukku näyttää painavalta." } },
+    // Punainen lappu: kaktusruukun alla pöydällä.
+    { id: "table", shape: "model", model: "table_medium", at: [3.15, 0, 1.5], solid: true, onTap: { message: "Pöytä. Kaktusruukku näyttää painavalta." } },
     {
       id: "pot",
-      shape: "cylinder",
-      at: [3.4, 0.9, 1.9],
-      size: [0.3, 0.3],
-      color: "#b0552f",
+      shape: "model",
+      model: "cactus_small_B",
+      at: [3.35, 0.78, 1.95],
       onTap: { message: "Ruukun alla oli jotain! Punainen lappu putosi pöydälle.", messageAgain: "Ruukun alla ei ole enää mitään.", reveals: ["redNote"] },
     },
-    { id: "leaves", shape: "sphere", at: [3.4, 1.3, 1.9], size: [0.55], color: "#3f8a45", onTap: { message: "Kasvi. Kokeile ruukkua." } },
+    { id: "chair", shape: "model", model: "chair_A_wood", at: [2.05, 0, 1.3], rotate: -90, solid: true, onTap: { message: "Tuoli." } },
     {
       id: "redNote",
       shape: "sign",
-      at: [3.4, 0.76, 1.1],
+      at: [3.2, 0.79, 1.1],
       size: [0.3, 0.3],
       tilt: 90,
       hidden: true,
@@ -51,12 +50,12 @@ export const room2: RoomDefinition = {
       onTap: { message: "Punainen lappu: 5" },
     },
 
-    // Sininen lappu: hyllyllä korkealla länsiseinällä. Laatikon päältä yltää.
-    { id: "shelf", shape: "box", at: [-3.75, 2.5, 2.5], size: [0.5, 0.05, 1.2], color: "#5a3d28", solid: true },
+    // Sininen lappu: hyllyn yläpuolella korkealla länsiseinällä. Pienen kaapin päältä yltää.
+    { id: "shelf", shape: "model", model: "shelf_A_big", at: [-3.8, 2.3, 2.5], rotate: -90 },
     {
       id: "blueNote",
       shape: "sign",
-      at: [-3.98, 2.7, 2.5],
+      at: [-3.98, 2.82, 2.5],
       size: [0.3, 0.3],
       rotate: -90,
       text: "8",
@@ -64,7 +63,7 @@ export const room2: RoomDefinition = {
       textColor: "#ffffff",
       onTap: { message: "Sininen lappu: 8", farMessage: "Liian korkealla. Pääsisikö jonnekin kiipeämään?" },
     },
-    { id: "crate", shape: "box", at: [-3.2, 0.4, 1.4], size: [0.8, 0.8, 0.8], color: "#a67c52", solid: true, onTap: { message: "Puulaatikko. Aika tukeva. Sen päälle voisi hypätä." } },
+    { id: "crate", shape: "model", model: "cabinet_small", at: [-3.4, 0, 1.6], rotate: -90, solid: true, onTap: { message: "Pieni kaappi. Aika tukeva. Sen päälle voisi hypätä." } },
 
     // Vihreä lappu: kaapissa pohjoisseinällä.
     { id: "cabinetBack", shape: "box", at: [2.0, 0.9, 3.8], size: [1.0, 1.8, 0.3], color: "#5a3d28", solid: true },
@@ -92,6 +91,10 @@ export const room2: RoomDefinition = {
       onTap: { message: "Vihreä lappu: 3" },
     },
 
-    { id: "rug", shape: "box", at: [0, 0.005, 0], size: [2.4, 0.01, 1.6], color: "#3b5a8a" },
+    // Sisustus: lipasto eteläseinällä, taulu pöydän yläpuolella, lamppu ja matto.
+    { id: "dresser", shape: "model", model: "cabinet_medium_decorated", at: [-2.6, 0, -3.6], rotate: 180, solid: true, onTap: { message: "Lipasto. Laatikoissa on vain sukkia." } },
+    { id: "picture", shape: "model", model: "pictureframe_medium", at: [3.92, 1.3, 1.5], rotate: 90, onTap: { message: "Taulu. Sen takana on pelkkää seinää." } },
+    { id: "lamp", shape: "model", model: "lamp_standing", at: [3.4, 0, -3.4], onTap: { message: "Jalkalamppu." } },
+    { id: "rug", shape: "model", model: "rug_rectangle_stripes_A", at: [0, 0, 0] },
   ],
 };

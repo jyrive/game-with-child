@@ -1,8 +1,10 @@
 import type { RoomDefinition } from "./types";
 
 /**
- * Huone 3: avain on vaatekaapin päällä, jonne pääsee kiipeämällä tuolin ja pöydän kautta.
+ * Huone 3: avain on vaatekaapin päällä. Siihen yltää, kun kiipeää viereisen pöydän päälle.
  * Avaimella arkku aukeaa. Arkun lapussa koodi on laskutehtävä: tuolit, kirjat, ikkunat.
+ * Huoneessa pitää olla tasan 2 tuolia, 4 kirjaa ja 1 ikkuna. Älä lisää koristeltuja hyllyjä tai
+ * kaappeja (niissä on kirjoja), tauluja (näyttävät ikkunoilta) tai muita istuimia.
  */
 export const room3: RoomDefinition = {
   id: "avain-ja-lasku",
@@ -55,15 +57,15 @@ export const room3: RoomDefinition = {
       rotate: 30,
       onTap: { gives: "avain", message: "Sait avaimen!", farMessage: "Kaapin päällä kiiltää jotain. Liian korkealla." },
     },
-    { id: "table", shape: "table", at: [2.1, 0, 2.6], size: [0.8, 0.75, 1.2], color: "#6f4a2c", solid: true, onTap: { message: "Pöytä. Sen päälle voisi kiivetä." } },
+    { id: "table", shape: "model", model: "table_small", at: [2.2, 0, 2.5], solid: true, onTap: { message: "Pöytä. Sen päälle voisi kiivetä." } },
 
     // Laskettavat esineet: 2 tuolia, 4 kirjaa, 1 ikkuna.
-    { id: "chair1", shape: "chair", at: [2.2, 0, 1.2], size: [0.45], color: "#7a5438", solid: true, onTap: { message: "Tuoli." } },
-    { id: "chair2", shape: "chair", at: [-1.5, 0, 2.8], size: [0.45], rotate: 30, color: "#7a5438", solid: true, onTap: { message: "Tuoli." } },
-    { id: "book1", shape: "box", at: [2.1, 0.78, 2.3], size: [0.35, 0.05, 0.25], color: "#9b2d3a", onTap: { message: "Kirja." } },
-    { id: "book2", shape: "box", at: [2.1, 0.78, 2.9], size: [0.35, 0.05, 0.25], rotate: 20, color: "#2d4f9b", onTap: { message: "Kirja." } },
-    { id: "book3", shape: "box", at: [0.5, 0.025, -1.0], size: [0.35, 0.05, 0.25], rotate: 40, color: "#2f7a3a", onTap: { message: "Kirja lattialla." } },
-    { id: "book4", shape: "box", at: [-3.5, 0.53, -3.0], size: [0.35, 0.05, 0.25], rotate: -10, color: "#d9a53b", onTap: { message: "Kirja arkun päällä." } },
+    { id: "chair1", shape: "model", model: "chair_A", at: [2.2, 0, 1.35], rotate: 180, solid: true, onTap: { message: "Tuoli." } },
+    { id: "chair2", shape: "model", model: "chair_B_wood", at: [-1.5, 0, 2.8], rotate: 30, solid: true, onTap: { message: "Tuoli." } },
+    { id: "book1", shape: "model", model: "book_single", at: [2.0, 0.78, 2.3], rotate: 10, onTap: { message: "Kirja." } },
+    { id: "book2", shape: "model", model: "book_single", at: [2.4, 0.78, 2.7], rotate: -20, onTap: { message: "Kirja." } },
+    { id: "book3", shape: "model", model: "book_single", at: [-3.4, 0.78, 1.1], rotate: -70, onTap: { message: "Kirja yöpöydällä." } },
+    { id: "book4", shape: "model", model: "book_single", at: [-3.5, 0.5, -3.0], rotate: -10, onTap: { message: "Kirja arkun päällä." } },
     {
       id: "window",
       shape: "sign",
@@ -77,9 +79,13 @@ export const room3: RoomDefinition = {
     { id: "windowBarV", shape: "box", at: [-3.97, 2.0, 0.5], size: [0.02, 0.9, 0.04], color: "#f4f4f4" },
     { id: "windowBarH", shape: "box", at: [-3.97, 2.0, 0.5], size: [0.02, 0.04, 1.2], color: "#f4f4f4" },
 
+    // Makuunurkkaus: sänky ja yöpöytä ikkunan alla.
+    { id: "bed", shape: "model", model: "bed_single_B", at: [-3.35, 0, 2.8], solid: true, onTap: { message: "Sänky. Patjan alla ei ole mitään." } },
+    { id: "nightstand", shape: "model", model: "cabinet_small", at: [-3.4, 0, 1.1], rotate: -90, solid: true, onTap: { message: "Yöpöytä. Laatikko on tyhjä." } },
+
     // Harhautukset.
-    { id: "pot", shape: "cylinder", at: [-1.0, 0.15, -3.5], size: [0.4, 0.3], color: "#b0552f", onTap: { message: "Kasvi. Mullassa ei ole mitään." } },
-    { id: "leaves", shape: "sphere", at: [-1.0, 0.6, -3.5], size: [0.7], color: "#3f8a45", onTap: { message: "Kasvi. Mullassa ei ole mitään." } },
-    { id: "rug", shape: "box", at: [0, 0.005, 0.5], size: [2.6, 0.01, 1.8], color: "#6a3b5a", onTap: { message: "Matto. Sen alla ei ole mitään." } },
+    { id: "pot", shape: "model", model: "cactus_medium_A", at: [-1.0, 0, -3.5], onTap: { message: "Kaktus. Mullassa ei ole mitään." } },
+    { id: "lamp", shape: "model", model: "lamp_standing", at: [3.4, 0, -3.4], onTap: { message: "Jalkalamppu." } },
+    { id: "rug", shape: "model", model: "rug_rectangle_A", at: [0, 0, 0.3], onTap: { message: "Matto. Sen alla ei ole mitään." } },
   ],
 };

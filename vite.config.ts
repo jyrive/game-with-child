@@ -31,7 +31,7 @@ export default defineConfig({
       workbox: {
         // Babylonin paketit ovat isoja; Workboxin oletusraja (2 MB) ei riitä.
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
-        // glb on pelaajan hahmon 3D-malli; se otetaan mukaan, jotta peli toimii myös ilman verkkoa.
+        // glb-tiedostot ovat pelaajan hahmo ja huonekalut; ne otetaan mukaan, jotta peli toimii myös ilman verkkoa.
         globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2,glb}"],
       },
     }),

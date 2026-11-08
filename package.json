@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "typecheck": "tsc --noEmit",
-    "trim-character": "node scripts/trim-character.mjs"
+    "trim-character": "node scripts/trim-character.mjs",
+    "pack-furniture": "node scripts/pack-furniture.mjs"
   },
   "dependencies": {
     "@babylonjs/core": "^9.33.1",
