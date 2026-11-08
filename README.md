@@ -45,7 +45,7 @@ Muut komennot:
 | `npm run build`     | Tekee julkaistavan version `dist`-kansioon   |
 | `npm run preview`   | Näyttää `dist`-kansion version selaimessa    |
 | `npm run trim-character -- polku/Hahmo.glb` | Tekee hahmomallista pelin käyttämän kevyen version (ks. Pelaajan hahmo) |
-| `npm run pack-furniture -- polku/gltf-kansio` | Pakkaa huonekalumallit yhdeksi tiedostoksi (ks. Huonekalut) |
+| `npm run pack-furniture -- polku/kaykit-kansio` | Pakkaa huonekalumallit yhdeksi tiedostoksi (ks. Huonekalut) |
 
 ## Ohjaus
 
@@ -55,11 +55,17 @@ Muut komennot:
 | Veto oikealla puolella kääntää kameraa   | Hiirellä veto kääntää kameraa      |
 | Nipistys zoomaa                          | Rulla zoomaa                       |
 | Nurkan nappi hyppää                      | Välilyönti hyppää                  |
+| Silmistä/Takaa-nappi vaihtaa näkymää     | V vaihtaa näkymää                  |
 | Napautus esineeseen                      | Klikkaus esineeseen                |
 
 Puhelimella koko ruudun vasen puoli on joystick: peukalon voi laskea mihin
 tahansa vasemmalle. Oikea puoli kääntää kameraa, ja nipistys zoomaa, kun
 molemmat sormet ovat oikealla puolella.
+
+Oikean alakulman napista (tietokoneella V-näppäimellä) näkymän voi vaihtaa
+hahmon silmiin. Silloin hahmo ei ole edessä, ja lappuja on helpompi lukea: arkkuun
+voi esimerkiksi kurkistaa katsomalla alas. Samasta napista pääsee takaisin, ja peli
+muistaa valinnan.
 
 Kamera kääntyy itsestään hiljalleen hahmon taakse, kun hahmo kävelee eteenpäin,
 joten kameraa tarvitsee kääntää itse harvoin. Jos kameraa kääntää itse, se odottaa
@@ -78,9 +84,9 @@ selaimeen, joten peliä voi jatkaa huoneesta, johon jäi.
 
 1. **Alku.** Koodi on lapussa taulun takana.
 2. **Kolme numeroa.** Koodi on kolmessa värillisessä lapussa: yksi kaktusruukun
-   alla, yksi korkealla hyllyllä (pienen kaapin päältä yltää) ja yksi kaapissa. Juliste
+   alla, yksi korkealla hyllyllä (pienen kaapin päältä yltää) ja yksi jääkaapissa. Juliste
    kertoo järjestyksen.
-3. **Avain ja lasku.** Avain on vaatekaapin päällä, jonne pääsee pöydän kautta.
+3. **Avain ja lasku.** Avain on vaatekaapin päällä, ja siihen yltää viereisen pöydän päältä.
    Avaimella arkku aukeaa, ja arkun lappu kertoo, että koodi on tuolien,
    kirjojen ja ikkunoiden määrä.
 
@@ -157,17 +163,32 @@ ilman kiiltoa, samoin kuin huoneen esineillä. Se on puhelimelle kevyempää.
 
 ## Huonekalut
 
-Huonekalut ovat KayKit-paketin *Furniture Bits* malleja. Ne on tehnyt Kay
-Lousberg, sama tekijä kuin pelaajan hahmon (CC0-lisenssi, saa käyttää vapaasti).
-Kaikki 53 mallia ovat yhdessä tiedostossa `public/models/furniture.glb` (noin
-0,65 Mt). Malleilla on yksi yhteinen kuva ja materiaali, joten huonekaluja voi olla
-huoneessa paljon ilman, että peli hidastuu.
+Huonekalut ovat KayKit-pakettien malleja. Ne on tehnyt Kay Lousberg, sama tekijä
+kuin pelaajan hahmon (CC0-lisenssi, saa käyttää vapaasti):
 
-Tiedosto tehdään paketista näin:
+- *Furniture Bits*: 53 huonekalua (sohvat, pöydät, sängyt, hyllyt, matot...)
+- *Dungeon Remastered*: arkku, jonka kansi aukeaa, ja avain
+- *Restaurant Bits*: jääkaappi, jonka ovi aukeaa
 
-1. Lataa paketti: https://github.com/KayKit-Game-Assets/KayKit-Furniture-Bits-1.0
-   (mallit ovat kansiossa `addons/kaykit_furniture_bits/Assets/gltf`).
-2. `npm run pack-furniture -- polku/gltf` tekee tiedostot `public/models/furniture.glb`
+Vaatekaappi on tehty itse laatikoista samoilla väreillä, koska yhdessäkään paketissa
+ei ole vaatekaappia.
+
+Arkun kansi ja jääkaapin ovi aukeavat, kun esineellä on `onTap: { swing: 100 }`.
+Arkku ja jääkaappi ovat sisältä onttoja, joten niiden sisään voi piilottaa lapun.
+
+Kaikki mallit ovat yhdessä tiedostossa `public/models/furniture.glb` (noin
+0,75 Mt). Saman paketin malleilla on yksi yhteinen kuva ja materiaali, joten
+huonekaluja voi olla huoneessa paljon ilman, että peli hidastuu.
+
+Tiedosto tehdään paketeista näin:
+
+1. Lataa paketit samaan kansioon:
+   ```bash
+   git clone https://github.com/KayKit-Game-Assets/KayKit-Furniture-Bits-1.0
+   git clone https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0
+   git clone https://github.com/KayKit-Game-Assets/KayKit-Restaurant-Bits-1.0
+   ```
+2. `npm run pack-furniture -- polku/kansioon` tekee tiedostot `public/models/furniture.glb`
    ja `src/game/rooms/furniture.ts`.
 
 Komento skaalaa mallit samaan kokoon kuin hahmo (hahmo 1,7 m, pöytä 0,78 m).

@@ -167,7 +167,7 @@ export class Game {
     if (!s) return;
     const target = (degrees * Math.PI) / 180;
     void tween(this.scene, 900, (e) => {
-      s.node.rotation.y = s.baseYaw + target * e;
+      s.node.rotation[s.axis] = s.base + s.sign * target * e;
     });
   }
 

@@ -2,7 +2,7 @@ import type { RoomDefinition } from "./types";
 
 /**
  * Huone 2: koodi on kolmessa osassa. Punainen lappu on kaktusruukun alla,
- * sininen korkealla hyllyllä (pitää kiivetä pienen kaapin päälle) ja vihreä kaapissa.
+ * sininen korkealla hyllyllä (pitää kiivetä pienen kaapin päälle) ja vihreä jääkaapissa.
  * Juliste kertoo järjestyksen.
  */
 export const room2: RoomDefinition = {
@@ -65,24 +65,19 @@ export const room2: RoomDefinition = {
     },
     { id: "crate", shape: "model", model: "cabinet_small", at: [-3.4, 0, 1.6], rotate: -90, solid: true, onTap: { message: "Pieni kaappi. Aika tukeva. Sen päälle voisi hypätä." } },
 
-    // Vihreä lappu: kaapissa pohjoisseinällä.
-    { id: "cabinetBack", shape: "box", at: [2.0, 0.9, 3.8], size: [1.0, 1.8, 0.3], color: "#5a3d28", solid: true },
-    { id: "cabinetLeft", shape: "box", at: [1.525, 0.9, 3.675], size: [0.05, 1.8, 0.55], color: "#5a3d28", solid: true },
-    { id: "cabinetRight", shape: "box", at: [2.475, 0.9, 3.675], size: [0.05, 1.8, 0.55], color: "#5a3d28", solid: true },
-    { id: "cabinetTop", shape: "box", at: [2.0, 1.775, 3.675], size: [1.0, 0.05, 0.55], color: "#5a3d28", solid: true },
-    { id: "cabinetBottom", shape: "box", at: [2.0, 0.025, 3.675], size: [1.0, 0.05, 0.55], color: "#5a3d28", solid: true },
+    // Vihreä lappu: jääkaapissa pohjoisseinällä.
     {
-      id: "cabinetDoor",
-      shape: "box",
-      at: [2.0, 0.9, 3.42],
-      size: [0.9, 1.6, 0.04],
-      color: "#7a5438",
-      onTap: { swing: 100, message: "Kaapin ovi aukesi.", messageAgain: "Kaappi on auki.", reveals: ["greenNote"] },
+      id: "fridge",
+      shape: "model",
+      model: "fridge",
+      at: [2.0, 0, 3.45],
+      solid: true,
+      onTap: { swing: 100, message: "Jääkaapin ovi aukesi.", messageAgain: "Jääkaappi on auki.", reveals: ["greenNote"] },
     },
     {
       id: "greenNote",
       shape: "sign",
-      at: [2.0, 1.2, 3.62],
+      at: [2.0, 0.75, 3.26],
       size: [0.3, 0.3],
       hidden: true,
       text: "3",

@@ -247,3 +247,21 @@ body.touch .hint { bottom: 45vh; }
 .fade.on { opacity: 1; }
 
 [hidden] { display: none !important; }
+
+/* Näkymän vaihto (takaa / silmistä). Puhelimella hyppynapin yläpuolella, tietokoneella oikeassa alakulmassa. */
+.viewBtn {
+  position: absolute;
+  right: calc(env(safe-area-inset-right) + 18px);
+  bottom: calc(env(safe-area-inset-bottom) + 22px);
+  min-width: 84px;
+  padding: 10px 14px;
+  border-radius: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--text);
+  font: 600 15px/1 system-ui, sans-serif;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+body.touch .viewBtn { bottom: calc(env(safe-area-inset-bottom) + 118px); right: calc(env(safe-area-inset-right) + 18px); }
+.viewBtn:active { background: var(--accent); color: #222; }

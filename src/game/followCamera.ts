@@ -18,6 +18,20 @@ export function homeRadius(camera: ArcRotateCamera): number {
   return isPortrait(camera) ? CAMERA_HOME.radiusPortrait : CAMERA_HOME.radius;
 }
 
+/**
+ * Näkymä: "behind" = hahmo näkyy ja kamera on sen takana (kuten Robloxissa),
+ * "eyes" = katsotaan hahmon silmistä, hahmo on piilossa. Silmistä on helpompi lukea lappuja.
+ */
+export type CameraMode = "behind" | "eyes";
+
+/** Silmistä-näkymässä kamera on hahmon pään kohdalla, aivan kohteen takana. */
+const EYES_RADIUS = 0.05;
+const EYE_HEIGHT = 1.45;
+/** Pystykulman rajat (beta: pieni = katse alas, π/2 = suoraan eteen). Silmistä saa katsoa myös ylös. */
+const BETA_LIMITS: Record<CameraMode, [number, number]> = { behind: [0.3, 1.5], eyes: [0.25, 2.5] };
+/** Kulma, johon kamera palaa (huoneen vaihto, näkymän vaihto). */
+const HOME_BETA: Record<CameraMode, number> = { behind: CAMERA_HOME.beta, eyes: 1.4 };
+
 /** Kuinka lähelle ja kauas pelaaja voi itse zoomata (metreinä hahmosta). */
 const ZOOM_MIN = 1.0;
 const ZOOM_MAX = 7;
@@ -35,6 +49,9 @@ const RETURN_RATE = 4;
  */
 interface Rig {
   target: TransformNode;
+  /** Kohteen korkeus takaa-näkymässä (avatar.ts asettaa sen). */
+  behindHeight: number;
+  mode: CameraMode;
   desired: number;
   applied: number;
   /** Milloin pelaaja viimeksi käänsi kameraa itse (ms). */
@@ -59,7 +76,7 @@ export function createFollowCamera(scene: Scene, canvas: HTMLCanvasElement, targ
   camera.maxZ = 60;
   // Babylonin rajat ovat väljät, koska seinän edessä kamera saa tulla lähemmäs kuin pelaaja voi zoomata.
   // Pelaajan zoomauksen rajat (ZOOM_MIN, ZOOM_MAX) tarkistetaan updateFollowCamerassa.
-  camera.lowerRadiusLimit = BLOCKED_MIN;
+  camera.lowerRadiusLimit = EYES_RADIUS;
   camera.upperRadiusLimit = ZOOM_MAX;
   camera.lowerBetaLimit = 0.3;
   camera.upperBetaLimit = 1.5;
@@ -72,14 +89,40 @@ export function createFollowCamera(scene: Scene, canvas: HTMLCanvasElement, targ
   // Nuolinäppäimet on varattu hahmon liikuttamiseen.
   camera.inputs.removeByType("ArcRotateCameraKeyboardMoveInput");
   camera.attachControl(canvas, true);
-  rigs.set(camera, { target, desired: CAMERA_HOME.radius, applied: CAMERA_HOME.radius, lastManualTurn: -Infinity });
+  rigs.set(camera, {
+    target,
+    behindHeight: target.position.y,
+    mode: "behind",
+    desired: CAMERA_HOME.radius,
+    applied: CAMERA_HOME.radius,
+    lastManualTurn: -Infinity,
+  });
   return camera;
 }
 
-/** Asettaa pelaajan zoomauksen (etäisyys hahmosta metreinä). */
+export function getCameraMode(camera: ArcRotateCamera): CameraMode {
+  return rigOf(camera).mode;
+}
+
+/**
+ * Vaihtaa näkymää. Katsesuunta vaakatasossa säilyy, joten hahmon silmistä näkee saman suunnan
+ * kuin takaa. Hahmo piilotetaan silmistä-näkymässä (ks. main.ts).
+ */
+export function setCameraMode(camera: ArcRotateCamera, mode: CameraMode): void {
+  const rig = rigOf(camera);
+  rig.mode = mode;
+  rig.target.position.y = mode === "eyes" ? EYE_HEIGHT : rig.behindHeight;
+  [camera.lowerBetaLimit, camera.upperBetaLimit] = BETA_LIMITS[mode];
+  camera.beta = HOME_BETA[mode];
+  camera.inertialAlphaOffset = camera.inertialBetaOffset = camera.inertialRadiusOffset = 0;
+  setRadius(camera, homeRadius(camera));
+}
+
+/** Asettaa pelaajan zoomauksen (etäisyys hahmosta metreinä). Silmistä-näkymässä etäisyys on aina sama. */
 function setRadius(camera: ArcRotateCamera, radius: number): void {
   const rig = rigOf(camera);
-  rig.desired = rig.applied = camera.radius = clamp(radius, ZOOM_MIN, ZOOM_MAX);
+  const r = rig.mode === "eyes" ? EYES_RADIUS : clamp(radius, ZOOM_MIN, ZOOM_MAX);
+  rig.desired = rig.applied = camera.radius = r;
 }
 
 const ray = new Ray(Vector3.Zero(), Vector3.Forward(), 1);
@@ -96,6 +139,14 @@ const blocksCamera = (m: AbstractMesh): boolean => m.checkCollisions && m.isEnab
 export function updateFollowCamera(camera: ArcRotateCamera, dtSeconds: number, heading: number, forward: number): void {
   const rig = rigOf(camera);
   const now = performance.now();
+
+  // Silmistä: ei zoomausta, ei automaattista kääntöä (katse on pelaajan omissa käsissä), eikä
+  // seinätarkistusta (kamera on hahmon sisällä, ja hahmo pysyy irti seinistä).
+  if (rig.mode === "eyes") {
+    camera.inertialRadiusOffset = 0;
+    rig.desired = rig.applied = camera.radius = EYES_RADIUS;
+    return;
+  }
 
   // Pelaajan oma zoomaus (nipistys tai rulla) näkyy muutoksena siihen etäisyyteen, jonka asetimme viimeksi.
   const zoomed = camera.radius - rig.applied;
@@ -126,7 +177,7 @@ export function updateFollowCamera(camera: ArcRotateCamera, dtSeconds: number, h
 /** Palauttaa kameran hahmon taakse (huoneen vaihto). */
 export function resetCamera(camera: ArcRotateCamera): void {
   camera.alpha = CAMERA_HOME.alpha;
-  camera.beta = CAMERA_HOME.beta;
+  camera.beta = HOME_BETA[rigOf(camera).mode];
   setRadius(camera, homeRadius(camera));
 }
 

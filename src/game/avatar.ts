@@ -152,6 +152,7 @@ export class Avatar {
       this.model = { idle, walk, run, jump, loops: [idle, walk, run, jump], all };
       modelRoot.setEnabled(true);
       this.blocky.setEnabled(false);
+      if (this.hiddenByCamera) for (const m of meshes) m.isVisible = false; // silmistä-näkymä oli jo päällä
     } catch (e) {
       console.warn("Hahmon 3D-mallia ei voitu ladata, käytetään palikkahahmoa.", e);
     }
