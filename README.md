@@ -57,6 +57,17 @@ Muut komennot:
 | Nurkan nappi hyppää                      | Välilyönti hyppää                  |
 | Napautus esineeseen                      | Klikkaus esineeseen                |
 
+Puhelimella koko ruudun vasen puoli on joystick: peukalon voi laskea mihin
+tahansa vasemmalle. Oikea puoli kääntää kameraa, ja nipistys zoomaa, kun
+molemmat sormet ovat oikealla puolella.
+
+Kamera kääntyy itsestään hiljalleen hahmon taakse, kun hahmo kävelee eteenpäin,
+joten kameraa tarvitsee kääntää itse harvoin. Jos kameraa kääntää itse, se odottaa
+hetken ennen kuin alkaa taas kääntyä. Automaattisen käännön saa pois tiedostossa
+`src/game/config.ts` (`camera: { autoFollow: false }`). Kun seinä tai huonekalu on
+kameran tiellä, kamera tulee lähemmäs ja palaa sitten itse takaisin omalle
+etäisyydelleen.
+
 Esineisiin yltää vain läheltä. Korkealla oleviin pitää kiivetä: hyppää
 laatikon, tuolin tai pöydän päälle.
 

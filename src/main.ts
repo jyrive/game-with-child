@@ -9,7 +9,7 @@ import { registerSW } from "virtual:pwa-register";
 import { CONFIG } from "./game/config";
 import { Avatar } from "./game/avatar";
 import { CharacterController } from "./game/characterController";
-import { applyOrientation, createFollowCamera, lookFrom } from "./game/followCamera";
+import { applyOrientation, createFollowCamera, lookFrom, updateFollowCamera } from "./game/followCamera";
 import { MoveInput, pickInteractable, setupCanvasTap } from "./game/input";
 import { Game } from "./game/game";
 import { FurnitureLibrary } from "./game/furnitureLibrary";
@@ -73,6 +73,9 @@ setupTouchControls(input, handleTap);
 scene.onBeforeRenderObservable.add(() => {
   const dt = engine.getDeltaTime() / 1000;
   if (!overlay.modalOpen) controller.update(dt);
+  const forward = controller.enabled && !overlay.modalOpen ? Math.max(0, input.move.y) : 0;
+  updateFollowCamera(camera, dt, avatar.root.rotation.y, forward);
+  avatar.setHiddenByCamera(camera.radius < 0.8);
   game.update();
 });
 

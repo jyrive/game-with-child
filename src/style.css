@@ -130,12 +130,14 @@ body.touch .touchOnly { display: block; }
 body.touch .hint { bottom: 45vh; }
 
 /* Joystick: alue vasemmassa alakulmassa, rengas ilmestyy peukalon kohdalle. */
+/* Koko vasen puoli on joystickia (yläpalkkia lukuun ottamatta). Silloin vasen peukalo ei voi osua
+   kameran alueelle, eikä kahden sormen kosketus muutu vahingossa nipistyszoomaukseksi. */
 .joyZone {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 45vw;
-  height: 42vh;
+  top: calc(env(safe-area-inset-top) + 64px);
+  width: 50vw;
   pointer-events: auto;
   touch-action: none;
 }

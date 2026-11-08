@@ -82,6 +82,17 @@ export class Avatar {
     return this.root.position;
   }
 
+  /**
+   * Piilottaa hahmon, kun kamera on niin lähellä, että se olisi hahmon pään sisällä
+   * (selkä seinää vasten). Näkymä on silloin kuin hahmon silmistä.
+   */
+  setHiddenByCamera(hidden: boolean): void {
+    if (hidden === this.hiddenByCamera) return;
+    this.hiddenByCamera = hidden;
+    for (const m of this.root.getChildMeshes()) m.isVisible = !hidden;
+  }
+  private hiddenByCamera = false;
+
   /** Onko 3D-malli käytössä (vai palikkahahmo). */
   get hasModel(): boolean {
     return this.model !== null;

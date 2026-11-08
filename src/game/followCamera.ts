@@ -1,7 +1,10 @@
 import type { Scene } from "@babylonjs/core/scene";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Ray } from "@babylonjs/core/Culling/ray";
+import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { CONFIG } from "./config";
 
 /** Kameran etäisyys hahmosta ja kulma alussa. Pystyasennossa kamera on kauempana, ettei hahmo peitä näkymää. */
 export const CAMERA_HOME = { alpha: -Math.PI / 2, beta: 1.15, radius: 3.2, radiusPortrait: 4.6 };
@@ -15,17 +18,49 @@ export function homeRadius(camera: ArcRotateCamera): number {
   return isPortrait(camera) ? CAMERA_HOME.radiusPortrait : CAMERA_HOME.radius;
 }
 
+/** Kuinka lähelle ja kauas pelaaja voi itse zoomata (metreinä hahmosta). */
+const ZOOM_MIN = 1.0;
+const ZOOM_MAX = 7;
+/** Kuinka lähelle hahmoa kamera saa tulla, kun seinä on tiellä. */
+const BLOCKED_MIN = 0.3;
+/** Kuinka paljon kamera pysyy irti seinästä tai huonekalusta. */
+const WALL_MARGIN = 0.25;
+/** Kuinka nopeasti kamera palaa omalle etäisyydelleen, kun este väistyy (suurempi = nopeammin). */
+const RETURN_RATE = 4;
+
+/**
+ * Kameran oma etäisyys (desired) on se, minkä pelaaja on zoomannut. Kun seinä tai huonekalu on
+ * hahmon ja kameran välissä, kamera tulee hetkeksi lähemmäs (applied) ja palaa sitten itse takaisin.
+ * Babylonin oma törmäystarkistus ei kelpaa: se jättäisi kameran lähelle, ja pelaajan pitäisi zoomata ulos.
+ */
+interface Rig {
+  target: TransformNode;
+  desired: number;
+  applied: number;
+  /** Milloin pelaaja viimeksi käänsi kameraa itse (ms). */
+  lastManualTurn: number;
+}
+const rigs = new WeakMap<ArcRotateCamera, Rig>();
+
+function rigOf(camera: ArcRotateCamera): Rig {
+  const rig = rigs.get(camera);
+  if (!rig) throw new Error("kamera ei ole createFollowCameran tekemä");
+  return rig;
+}
+
 /**
  * Kamera, joka kiertää hahmon ympärillä kuten Robloxissa: veto kääntää, nipistys tai rulla zoomaa.
- * Törmäystarkistus estää kameraa menemästä seinän läpi.
+ * Seinän läpi kamera ei mene (ks. updateFollowCamera).
  */
 export function createFollowCamera(scene: Scene, canvas: HTMLCanvasElement, target: TransformNode): ArcRotateCamera {
   const camera = new ArcRotateCamera("camera", CAMERA_HOME.alpha, CAMERA_HOME.beta, CAMERA_HOME.radius, Vector3.Zero(), scene);
   camera.setTarget(target);
   camera.minZ = 0.05;
   camera.maxZ = 60;
-  camera.lowerRadiusLimit = 1.0;
-  camera.upperRadiusLimit = 7;
+  // Babylonin rajat ovat väljät, koska seinän edessä kamera saa tulla lähemmäs kuin pelaaja voi zoomata.
+  // Pelaajan zoomauksen rajat (ZOOM_MIN, ZOOM_MAX) tarkistetaan updateFollowCamerassa.
+  camera.lowerRadiusLimit = BLOCKED_MIN;
+  camera.upperRadiusLimit = ZOOM_MAX;
   camera.lowerBetaLimit = 0.3;
   camera.upperBetaLimit = 1.5;
   camera.wheelDeltaPercentage = 0.02;
@@ -34,44 +69,89 @@ export function createFollowCamera(scene: Scene, canvas: HTMLCanvasElement, targ
   camera.angularSensibilityY = 900;
   camera.inertia = 0.75;
   camera.panningSensibility = 0; // ei panorointia: kohde on aina hahmo
-  camera.checkCollisions = true;
-  camera.collisionRadius = new Vector3(0.25, 0.25, 0.25);
   // Nuolinäppäimet on varattu hahmon liikuttamiseen.
   camera.inputs.removeByType("ArcRotateCameraKeyboardMoveInput");
   camera.attachControl(canvas, true);
+  rigs.set(camera, { target, desired: CAMERA_HOME.radius, applied: CAMERA_HOME.radius, lastManualTurn: -Infinity });
   return camera;
 }
 
+/** Asettaa pelaajan zoomauksen (etäisyys hahmosta metreinä). */
+function setRadius(camera: ArcRotateCamera, radius: number): void {
+  const rig = rigOf(camera);
+  rig.desired = rig.applied = camera.radius = clamp(radius, ZOOM_MIN, ZOOM_MAX);
+}
+
+const ray = new Ray(Vector3.Zero(), Vector3.Forward(), 1);
+const blocksCamera = (m: AbstractMesh): boolean => m.checkCollisions && m.isEnabled();
+
 /**
- * Kun kamera hyppää kerralla uuteen paikkaan, törmäystarkistus ei saa "pyyhkäistä" matkaa vanhasta
- * paikasta uuteen: muuten kamera jää matkalla osuvan huonekalun taakse. Ohitetaan se yhden kehyksen ajan.
+ * Kutsutaan joka kehyksellä hahmon liikuttamisen jälkeen.
+ * - Pitää kameran pelaajan valitsemalla etäisyydellä, paitsi kun seinä tai huonekalu on tiellä.
+ * - Kääntää kameraa hiljalleen hahmon taakse, kun hahmo kävelee eteenpäin (CONFIG.camera.autoFollow).
+ *
+ * heading: suunta, johon hahmo kävelee (sama kulma kuin hahmon kierto). forward: kuinka paljon
+ * ohjaus osoittaa eteenpäin (0..1); sivuttain tai taaksepäin kävellessä kamera ei käänny.
  */
-function snap(camera: ArcRotateCamera): void {
-  camera.checkCollisions = false;
-  camera.getScene().onAfterRenderObservable.addOnce(() => {
-    camera.checkCollisions = true;
-  });
+export function updateFollowCamera(camera: ArcRotateCamera, dtSeconds: number, heading: number, forward: number): void {
+  const rig = rigOf(camera);
+  const now = performance.now();
+
+  // Pelaajan oma zoomaus (nipistys tai rulla) näkyy muutoksena siihen etäisyyteen, jonka asetimme viimeksi.
+  const zoomed = camera.radius - rig.applied;
+  if (Math.abs(zoomed) > 1e-4) rig.desired = clamp(rig.desired + zoomed, ZOOM_MIN, ZOOM_MAX);
+
+  // Automaattinen kääntö hahmon taakse. Ei heti sen jälkeen, kun pelaaja on kääntänyt kameraa itse.
+  if (camera.inertialAlphaOffset !== 0 || camera.inertialBetaOffset !== 0) rig.lastManualTurn = now;
+  const follow = CONFIG.camera;
+  if (follow.autoFollow && forward > 0.1 && now - rig.lastManualTurn > follow.delayMs) {
+    const behind = Math.atan2(-Math.cos(heading), -Math.sin(heading));
+    camera.alpha += wrapAngle(behind - camera.alpha) * Math.min(1, dtSeconds * follow.speed * forward);
+  }
+
+  // Onko hahmon ja kameran välissä jotain? Säde kulkee hahmosta kameraa kohti.
+  const sinb = Math.max(1e-4, Math.sin(camera.beta));
+  ray.origin.copyFrom(rig.target.getAbsolutePosition());
+  ray.direction.set(Math.cos(camera.alpha) * sinb, Math.cos(camera.beta), Math.sin(camera.alpha) * sinb);
+  ray.length = rig.desired + WALL_MARGIN;
+  const hit = camera.getScene().pickWithRay(ray, blocksCamera);
+  const free = hit?.hit ? Math.max(BLOCKED_MIN, hit.distance - WALL_MARGIN) : rig.desired;
+
+  // Lähemmäs heti (ettei kamera näy seinän läpi), takaisin pehmeästi.
+  if (free < rig.applied) rig.applied = free;
+  else rig.applied += (free - rig.applied) * Math.min(1, dtSeconds * RETURN_RATE);
+  camera.radius = rig.applied;
 }
 
 /** Palauttaa kameran hahmon taakse (huoneen vaihto). */
 export function resetCamera(camera: ArcRotateCamera): void {
   camera.alpha = CAMERA_HOME.alpha;
   camera.beta = CAMERA_HOME.beta;
-  camera.radius = homeRadius(camera);
-  snap(camera);
+  setRadius(camera, homeRadius(camera));
 }
 
 /** Säätää näkökentän ja etäisyyden ruudun asennon mukaan. Kutsutaan alussa ja kun ikkunan koko muuttuu. */
 export function applyOrientation(camera: ArcRotateCamera): void {
   // Vaaka-asennossa kapeampi pystykulma; pystyasennossa leveämpi ja kamera kauempana.
   camera.fov = isPortrait(camera) ? 1.25 : 0.9;
-  camera.radius = homeRadius(camera);
+  setRadius(camera, homeRadius(camera));
 }
 
 /** Kääntää kameran katsomaan hahmosta kohti pistettä (testit, kehitysapu). */
 export function lookFrom(camera: ArcRotateCamera, fromX: number, fromZ: number, toX: number, toZ: number, beta = CAMERA_HOME.beta): void {
   camera.alpha = Math.atan2(-(toZ - fromZ), -(toX - fromX));
   camera.beta = beta;
-  camera.radius = homeRadius(camera);
-  snap(camera);
+  setRadius(camera, homeRadius(camera));
+}
+
+function clamp(v: number, lo: number, hi: number): number {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+
+/** Kulmaero välille -π..π, jotta kamera kääntyy lyhyintä reittiä. */
+function wrapAngle(a: number): number {
+  a %= Math.PI * 2;
+  if (a > Math.PI) a -= Math.PI * 2;
+  if (a < -Math.PI) a += Math.PI * 2;
+  return a;
 }
