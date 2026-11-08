@@ -8,6 +8,8 @@ export const room1: RoomDefinition = {
   intro: "Olet lukitussa huoneessa. Etsi koodi ja avaa ovi.",
   size: { width: 8, depth: 8, height: 3.5 },
   colors: { wall: "#cfc4ad", floor: "#7a5a3c", ceiling: "#ece6d8" },
+  floorStyle: "planks",
+  wallStyle: "wallpaper",
   start: [0, -0.5],
   doorX: 0,
   objects: [

@@ -12,6 +12,8 @@ export const room2: RoomDefinition = {
   intro: "Koodi on kolmessa osassa. Etsi punainen, sininen ja vihreä lappu.",
   size: { width: 8, depth: 8, height: 3.5 },
   colors: { wall: "#b9c9c4", floor: "#5f6b73", ceiling: "#e6ebea" },
+  floorStyle: "tiles",
+  wallStyle: "panel",
   start: [-1, -0.5],
   doorX: -1,
   objects: [

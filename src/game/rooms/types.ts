@@ -75,6 +75,11 @@ export interface TapBehavior {
   keypad?: boolean;
 }
 
+/** Lattian kuvio: puulankut, ruutulaatat, kokolattiamatto tai pelkkä väri. */
+export type FloorStyle = "planks" | "tiles" | "carpet" | "plain";
+/** Seinän kuvio: pelkkä maali, pystyraidat, tapetti, puupaneeli alaosassa tai tiiliseinä. */
+export type WallStyle = "plain" | "stripes" | "wallpaper" | "panel" | "bricks";
+
 export interface RoomDefinition {
   id: string;
   name: string;
@@ -84,6 +89,10 @@ export interface RoomDefinition {
   intro: string;
   size: { width: number; depth: number; height: number };
   colors: { wall: string; floor: string; ceiling: string };
+  /** Lattian kuvio. Väri tulee colors.floor-kentästä. Oletus "planks" (puulankut). */
+  floorStyle?: FloorStyle;
+  /** Seinien kuvio. Väri tulee colors.wall-kentästä. Oletus "plain" (pelkkä maali). */
+  wallStyle?: WallStyle;
   /** Mihin hahmo ilmestyy (x, z). */
   start: [number, number];
   /** Oven paikka pohjoisseinällä (x). Koodilukko tulee oven oikealle puolelle. */

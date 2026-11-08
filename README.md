@@ -119,6 +119,23 @@ Esine on muutama rivi:
 
 Ovi, karmi ja koodilukko tehdään automaattisesti kohtaan `doorX`.
 
+Lattian ja seinien värit ovat kentässä `colors`, ja kuviot valitaan näin:
+
+```ts
+colors: { wall: "#cfc4ad", floor: "#7a5a3c", ceiling: "#ece6d8" },
+floorStyle: "planks",
+wallStyle: "wallpaper",
+```
+
+- `floorStyle`: `planks` (puulankut), `tiles` (ruutulaatat), `carpet` (kokolattiamatto)
+  tai `plain` (pelkkä väri).
+- `wallStyle`: `plain` (maali), `stripes` (raidat), `wallpaper` (tapetti), `panel`
+  (puupaneeli alaosassa) tai `bricks` (tiiliseinä).
+
+Seinien alareunaan tulee jalkalista, nurkat ovat vähän tummempia, ja jokaisen
+lattialla seisovan huonekalun alle tulee pehmeä varjo. Ne piirretään kerran, kun
+huone rakennetaan, joten ne eivät hidasta peliä.
+
 Valmis huonekalu tehdään näin:
 
 ```ts
